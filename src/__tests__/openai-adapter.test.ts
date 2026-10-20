@@ -47,4 +47,29 @@ describe("openAiAdapter", () => {
       .toBe("opencode-key")
     expect(openAiAdapter.getSessionId(makeContext())).toBeUndefined()
   })
+
+  it("reads x-session-id after the OpenCode headers", () => {
+    expect(openAiAdapter.getSessionId(makeContext({ "x-session-id": "generic-key" })))
+      .toBe("generic-key")
+    // OpenCode sends both with one value; its own header and agent scoping win.
+    expect(openAiAdapter.getSessionId(makeContext({
+      "x-session-affinity": "affinity-key",
+      "x-session-id": "generic-key",
+    }))).toBe("affinity-key")
+    expect(openAiAdapter.getSessionId(makeContext({
+      "x-opencode-session": "base-key",
+      "x-opencode-agent-mode": "subagent",
+      "x-opencode-agent-name": "title",
+      "x-session-id": "generic-key",
+    }))).toBe("base-key#title")
+  })
+
+  it("ignores a blank x-session-id", () => {
+    expect(openAiAdapter.getSessionId(makeContext({ "x-session-id": "" }))).toBeUndefined()
+    expect(openAiAdapter.getSessionId(makeContext({ "x-session-id": "  " }))).toBeUndefined()
+  })
+
+  it("leaves the opencode adapter's identity unchanged", () => {
+    expect(openCodeAdapter.getSessionId(makeContext({ "x-session-id": "generic-key" }))).toBeUndefined()
+  })
 })

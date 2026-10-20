@@ -525,6 +525,7 @@ describe("POST /v1/chat/completions — session-keyed continuity for the generic
   for (const [headerName, keyValue] of [
     ["x-session-affinity", "affinity-session-a"],
     ["x-opencode-session", "opencode-session-a"],
+    ["x-session-id", "generic-session-a"],
   ] as const) {
     it(`keeps the real messages and resumes across turns keyed by ${headerName}`, async () => {
       const app = createTestApp()

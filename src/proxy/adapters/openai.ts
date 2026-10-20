@@ -26,6 +26,23 @@ import { openCodeAdapter } from "./opencode"
 export const openAiAdapter: AgentAdapter = {
   ...openCodeAdapter,
   name: "openai",
+
+  /**
+   * NOTE: agent-specific (OpenAI). Generic OpenAI clients have no
+   * Meridian-specific header, so `x-session-id` is accepted as well: OpenRouter
+   * documents it as the conversation's session key, and browser clients can
+   * send it to OpenRouter because its CORS allowlist names it, which it does
+   * not do for `x-session-affinity`. It ranks last so a client that sends the
+   * OpenCode headers too (OpenCode sends both, with one value) keeps its key
+   * and its agent scoping. Like the other headers it is read as conversation
+   * identity, not a stickiness hint.
+   */
+  getSessionId(c) {
+    const openCodeKey = openCodeAdapter.getSessionId(c)
+    if (openCodeKey !== undefined) return openCodeKey
+    const sessionId = c.req.header("x-session-id")
+    return sessionId?.trim() ? sessionId : undefined
+  },
 }
 
 /**
