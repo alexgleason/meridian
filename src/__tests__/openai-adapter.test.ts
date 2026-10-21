@@ -8,18 +8,13 @@
  * adapter otherwise behaves exactly like `opencode` (tools, MCP, passthrough).
  */
 import { describe, it, expect } from "bun:test"
+import { Context } from "hono"
 import { detectAdapter } from "../proxy/adapters/detect"
 import { openAiAdapter } from "../proxy/adapters/openai"
 import { openCodeAdapter } from "../proxy/adapters/opencode"
 
-function makeContext(extraHeaders: Record<string, string> = {}): any {
-  const allHeaders: Record<string, string> = {}
-  for (const [k, v] of Object.entries(extraHeaders)) allHeaders[k.toLowerCase()] = v
-  return {
-    req: {
-      header: (name?: string) => (name ? allHeaders[name.toLowerCase()] : { ...allHeaders }),
-    },
-  }
+function makeContext(extraHeaders: Record<string, string> = {}) {
+  return new Context(new Request("http://localhost/v1/chat/completions", { headers: extraHeaders }))
 }
 
 describe("openAiAdapter", () => {
